@@ -1,0 +1,29 @@
+{
+  "name": "apptccsorveteria",
+  "version": "1.0.0",
+  "description": "App do tcc da faculdade",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexLanes/AppTccSorveteria.git"
+  },
+  "keywords": [],
+  "author": "Alex Lanes Angelo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexLanes/AppTccSorveteria/issues"
+  },
+  "homepage": "https://github.com/AlexLanes/AppTccSorveteria#readme",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "firebase": "^9.17.1",
+    "jsonschema": "^1.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
