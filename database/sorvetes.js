@@ -21,7 +21,7 @@ export async function obter_sorvetes(){
 		for( let doc of documentos.docs ){
 			let sorvete = doc.data()
 			if( validador_schema(sorvete) )
-                resultado.dados.push( new Sorvete(sorvete.nome, sorvete.estoque) )
+                resultado.dados.push( new Sorvete(sorvete.nome, sorvete.estoque, sorvete.url_imagem) )
             else contemInvalido = true
 		}
 
@@ -39,12 +39,12 @@ export async function obter_sorvetes(){
 }
 
 // Adicionar um sorvete na collection
-export async function adicionar_sorvete( nome, estoque ){
+export async function adicionar_sorvete( nome, estoque, url_imagem ){
     if( typeof nome == "string" )
         nome = remover_acento( nome.toLowerCase().trim() )
 
     let resultado = new Resultado(),
-        sorvete = new Sorvete( nome, estoque )
+        sorvete = new Sorvete( nome, estoque, url_imagem )
 
     // Dados não válidos
     if( !validador_schema(sorvete) ){
@@ -55,8 +55,8 @@ export async function adicionar_sorvete( nome, estoque ){
     
     try {
         let sorvetes = (await obter_sorvetes()).dados,
-        duplicado = sorvetes.some( item => 
-            remover_acento( item.nome ) == nome
+            duplicado = sorvetes.some( item => 
+                remover_acento( item.nome ) == nome
             )
             
         // Nome duplicado no banco de dados
@@ -116,34 +116,33 @@ export async function obter_id_sorvete( nome ){
     return resultado
 }
 
-// Atualizar status do estoque de um sorvete
-export async function atualizar_estoque_sorvete( nome, estoque ){
-    let resultado = new Resultado()
-    
-    // Validação nome
-    if( typeof nome == "string" && typeof estoque == "boolean" )
+// Atualizar sorvete com base no nome
+export async function atualizar_sorvete( nome, estoque, url_imagem ){
+    if( typeof nome == "string" )
         nome = remover_acento( nome.toLowerCase().trim() )
-    else {
+
+    let resultado = new Resultado(),
+        sorvete = new Sorvete( nome, estoque, url_imagem )
+
+    // Dados não válidos
+    if( !validador_schema(sorvete) ){
         resultado.sucesso = false
-        resultado.mensagem = "Falha na validação dos dados"
+        resultado.mensagem = "Dados informados não estão de acordo com o schema do sorvete"
         return resultado
     }
 
     resultado = await obter_id_sorvete( nome )
     
     // Validação se o id foi encontrado
-    if( !resultado.sucesso )
-        return resultado
+    if( !resultado.sucesso ) return resultado
     
     let id = resultado.dados[0]
     
     try {
-		let documento = doc( DB, DB_NOME, id ),
-            sorvete = new Sorvete( nome, estoque )
-        
+		let documento = doc( DB, DB_NOME, id )
         await updateDoc( documento, {...sorvete} )
         
-        resultado.mensagem = "Estoque atualizado com sucesso"
+        resultado.mensagem = "Sorvete atualizado com sucesso"
         resultado.dados = []
 
 	} catch( e ){
@@ -171,14 +170,12 @@ export async function apagar_sorvete( nome ){
     resultado = await obter_id_sorvete( nome )
     
     // Validação se o id foi encontrado
-    if( !resultado.sucesso )
-        return resultado
+    if( !resultado.sucesso ) return resultado
     
     let id = resultado.dados[0]
     
     try {
 		let documento = doc( DB, DB_NOME, id )
-        
         await deleteDoc( documento )
         
         resultado.mensagem = "Sorvete apagado com sucesso"
