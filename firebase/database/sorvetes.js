@@ -1,12 +1,12 @@
 "use strict"
 
 import { getFirestore, collection, getDocs, addDoc, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore/lite"
-import { Resultado } from "../schemas/resultado.js"
-import { validador_schema, Sorvete } from "../schemas/sorvete.js"
-import { remover_acento } from "../helper/funções.js"
+import { Resultado } from "../../schemas/resultado.js"
+import { validador_schema, Sorvete } from "../../schemas/sorvete.js"
+import { remover_acento } from "../../helper/funções.js"
 
-const { App } = import( "../app.js" ),
-      DB = getFirestore( App ),
+const { firebase } = import( "./firebase.js" ),
+      DB = getFirestore( firebase ),
       DB_NOME = "sorvetes",
       SORVETE_COLLECTION = collection( DB, DB_NOME )
 
@@ -21,13 +21,13 @@ export async function obter_sorvetes(){
 		for( let doc of documentos.docs ){
 			let sorvete = doc.data()
 			if( validador_schema(sorvete) )
-                resultado.dados.push( new Sorvete(sorvete.nome, sorvete.estoque, sorvete.url_imagem) )
+                resultado.resultados.push( new Sorvete(sorvete.nome, sorvete.estoque, sorvete.url_imagem) )
             else contemInvalido = true
 		}
 
         resultado.mensagem = ( contemInvalido ) 
-            ? resultado.dados.length + " dado(s) obtido(s). Banco de dados possui 1 ou mais itens inválidos"
-            : resultado.dados.length + " dado(s) obtido(s)"
+            ? resultado.resultados.length + " dado(s) obtido(s). Banco de dados possui 1 ou mais itens inválidos"
+            : resultado.resultados.length + " dado(s) obtido(s)"
 
 	} catch( e ){
 		console.error( "--- Erro obter_sorvetes --- \n", e )
@@ -54,7 +54,7 @@ export async function adicionar_sorvete( nome, estoque, url_imagem ){
     }
     
     try {
-        let sorvetes = (await obter_sorvetes()).dados,
+        let sorvetes = (await obter_sorvetes()).resultados,
             duplicado = sorvetes.some( item => 
                 remover_acento( item.nome ) == nome
             )
@@ -104,7 +104,7 @@ export async function obter_id_sorvete( nome ){
             return resultado
         }
 
-        documentos.docs.forEach( doc => resultado.dados.push(doc.id) )
+        documentos.docs.forEach( doc => resultado.resultados.push(doc.id) )
         resultado.mensagem = `${documentos.docs.length} sorvete(s) encontrado(s)`
 
 	} catch( e ){
@@ -136,14 +136,14 @@ export async function atualizar_sorvete( nome, estoque, url_imagem ){
     // Validação se o id foi encontrado
     if( !resultado.sucesso ) return resultado
     
-    let id = resultado.dados[0]
+    let id = resultado.resultados[0]
     
     try {
 		let documento = doc( DB, DB_NOME, id )
         await updateDoc( documento, {...sorvete} )
         
         resultado.mensagem = "Sorvete atualizado com sucesso"
-        resultado.dados = []
+        resultado.resultados = []
 
 	} catch( e ){
 		console.error( "--- Erro atualizar_estoque_sorvete --- \n", e )
@@ -172,14 +172,14 @@ export async function apagar_sorvete( nome ){
     // Validação se o id foi encontrado
     if( !resultado.sucesso ) return resultado
     
-    let id = resultado.dados[0]
+    let id = resultado.resultados[0]
     
     try {
 		let documento = doc( DB, DB_NOME, id )
         await deleteDoc( documento )
         
         resultado.mensagem = "Sorvete apagado com sucesso"
-        resultado.dados = []
+        resultado.resultados = []
 
 	} catch( e ){
 		console.error( "--- Erro apagar_sorvete --- \n", e )

@@ -1,24 +1,26 @@
 "use strict"
 
-import * as dotenv from "dotenv"
-import { initializeApp } from "firebase/app"
-
 // Inicializar o dotenv
+import * as dotenv from "dotenv"
 dotenv.config()
 
-// Informações de configuração do Web App Firebase
-const firebaseConfig = {
-	apiKey: process.env.firebaseConfig_apiKey,
-	authDomain: process.env.firebaseConfig_authDomain,
-	databaseURL: process.env.firebaseConfig_databaseURL,
-	projectId: process.env.firebaseConfig_projectId,
-	storageBucket: process.env.firebaseConfig_storageBucket,
-	messagingSenderId: process.env.firebaseConfig_messagingSenderId,
-	appId: process.env.firebaseConfig_appId,
-	measurementId: process.env.firebaseConfig_measurementId
-}
+// Inicializar o express
+import Express from "express"
+export const express = Express()
 
-// Inicialização do App Firebase
-export const App = initializeApp( firebaseConfig )
+// Configurando middleware
+import { router as autorização } from "./express/middleware/autorização.js"
+express.use( autorização )
+express.use( Express.json() )
 
-// const { apagar_imagem_sorvete } = await import("./storage/sorvetes.js")
+// Carregando rotas do express dinamicamente
+import fs from "fs-extra"
+const routes = "./express/routes"
+fs.readdirSync( routes ).forEach( async (arquivo) => {
+	let { router } = await import( `${routes}/${arquivo}` )
+	express.use( router )
+})
+
+express.listen(80, () => {
+	console.log(`Example app listening on port 80`)
+})

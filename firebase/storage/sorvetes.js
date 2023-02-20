@@ -1,11 +1,11 @@
 "use strict"
 
-import { getStorage, ref, listAll, getDownloadURL, deleteObject } from "firebase/storage";
-import { Resultado } from "../schemas/resultado.js"
-import { remover_acento } from "../helper/funções.js"
+import { getStorage, ref, listAll, getDownloadURL, deleteObject, uploadBytes } from "firebase/storage";
+import { Resultado } from "../../schemas/resultado.js"
+import { remover_acento } from "../../helper/funções.js"
 
-const { App } = import( "../app.js" ),
-      STORAGE = getStorage( App ),
+const { firebase } = import( "./firebase.js" ),
+      STORAGE = getStorage( firebase ),
       STORAGE_NAME = "sorvetes"
 
 export async function obter_nomes_imagens_sorvetes(){
@@ -15,9 +15,9 @@ export async function obter_nomes_imagens_sorvetes(){
     try {
         let imagens = await listAll( referencia )
         imagens.items.forEach( item => 
-            resultado.dados.push( item.fullPath ) 
+            resultado.resultados.push( item.fullPath ) 
         )
-        resultado.mensagem = `${resultado.dados.length} nome(s) encontrado(s)`
+        resultado.mensagem = `${resultado.resultados.length} nome(s) encontrado(s)`
 
     } catch( e ){
 		console.error( "--- Erro obter_nomes_imagens_sorvetes --- \n", e )
@@ -46,7 +46,7 @@ async function validacao_nome_sorvete( nome ){
     if( !resultado.sucesso ) return resultado
 
     let termoDeProcura = `${STORAGE_NAME}/${nome}.`,
-        caminho = resultado.dados.find( dado => 
+        caminho = resultado.resultados.find( dado => 
             remover_acento( dado ).includes( termoDeProcura )
         )
         
@@ -54,13 +54,13 @@ async function validacao_nome_sorvete( nome ){
     if( caminho == undefined ){
 		resultado.sucesso = false
         resultado.mensagem = `Imagem de nome ${nome} não encontrada em ${STORAGE_NAME}`
-        resultado.dados = []
+        resultado.resultados = []
         return resultado
     
         // Encontrado com sucesso
     } else {
         resultado.mensagem = "Caminho da imagem do sorvete encontrado"
-        resultado.dados = [ caminho ]
+        resultado.resultados = [ caminho ]
     }
 
     return resultado
@@ -78,7 +78,7 @@ export async function obter_url_imagem_sorvete( nome ){
         let referencia = ref( STORAGE, caminho ),
             url = await getDownloadURL( referencia )
         
-        resultado.dados = [ url ]
+        resultado.resultados = [ url ]
         resultado.mensagem = "Url encontrado com sucesso"
 
     } catch( e ){
@@ -102,7 +102,7 @@ export async function apagar_imagem_sorvete( nome ){
         let referencia = ref( STORAGE, caminho )
         await deleteObject( referencia )
         
-        resultado.dados = []
+        resultado.resultados = []
         resultado.mensagem = "Imagem apagada com sucesso"
 
     } catch( e ){
@@ -114,4 +114,22 @@ export async function apagar_imagem_sorvete( nome ){
     return resultado
 }
 
-// export async function upload_imagem_sorvete(  )
+export async function upload_imagem_sorvete( imagem ){
+    console.log( imagem )
+    // let resultado = new Resultado()
+
+    // try {
+    //     let referencia = ref( STORAGE, caminho ),
+    //         url = await getDownloadURL( referencia )
+        
+    //     resultado.resultados = [ url ]
+    //     resultado.mensagem = "Url encontrado com sucesso"
+
+    // } catch( e ){
+	// 	console.error( "--- Erro obter_url_imagem_sorvete --- \n", e )
+	// 	resultado.sucesso = false
+    //     resultado.mensagem = `Falha ao obter url da imagens do sorvete ${nome}. Olhe o Log para mais detalhes`
+	// }
+
+    // return resultado
+}

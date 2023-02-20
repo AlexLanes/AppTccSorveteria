@@ -11,7 +11,7 @@ export class Sorvete {
 }
 
 import { validate } from "jsonschema"
-export function validador_schema(objeto){
+export function validador_schema( objeto ){
 	const schema = {
 		"id": "sorvete",
 		"type": "object",
