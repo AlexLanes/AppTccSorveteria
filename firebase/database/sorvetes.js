@@ -1,62 +1,151 @@
 "use strict"
 
-import { getFirestore, collection, getDocs, addDoc, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore/lite"
-import { Resultado } from "../../schemas/resultado.js"
-import { validador_schema, Sorvete } from "../../schemas/sorvete.js"
-import { remover_acento } from "../../helper/funções.js"
+// Conexão com o Firestore Database
+import { firebase } from "../firebase.js"
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc } from "firebase/firestore/lite"
 
-const { firebase } = import( "./firebase.js" ),
-      DB = getFirestore( firebase ),
+const DB = getFirestore( firebase ),
       DB_NOME = "sorvetes",
       SORVETE_COLLECTION = collection( DB, DB_NOME )
 
-// Obter todos os documentos da collection sorvetes
+// Dependencias
+import { Resultado } from "../../schemas/resultado.js"
+import * as Schema from "../../schemas/sorvete.js"
+import * as Helper from "../../helper/funções.js"
+
+/**
+ * Obter todos os documentos da Collection
+ * @returns { Promisse< Resultado > }
+ */
 export async function obter_sorvetes(){
 	let resultado = new Resultado()
 
 	try {
 		let documentos = await getDocs( SORVETE_COLLECTION ),
-            contemInvalido = false
+            documentos_invalidos = 0
 
-		for( let doc of documentos.docs ){
-			let sorvete = doc.data()
-			if( validador_schema(sorvete) )
-                resultado.resultados.push( new Sorvete(sorvete.nome, sorvete.estoque, sorvete.url_imagem) )
-            else contemInvalido = true
-		}
-
-        resultado.mensagem = ( contemInvalido ) 
-            ? resultado.resultados.length + " dado(s) obtido(s). Banco de dados possui 1 ou mais itens inválidos"
-            : resultado.resultados.length + " dado(s) obtido(s)"
+		await documentos.docs.forEach( async (documento) => {
+			let sorvete = documento.data()
+			if( await Schema.validador(sorvete) ){
+                resultado.resultados.push({ 
+                    _id: documento.id, 
+                    ...sorvete
+                })
+            }
+            else documentos_invalidos++
+        })
+        
+        resultado.mensagem = ( !documentos_invalidos ) 
+            ? resultado.resultados.length + " dado(s) obtido(s)"
+            : `${resultado.resultados.length} dado(s) obtido(s). ${documentos_invalidos} dado(s) inválido(s) não retornado`
 
 	} catch( e ){
 		console.error( "--- Erro obter_sorvetes --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = "Falha ao obter sorvetes. Olhe o Log para mais detalhes"
+        resultado.mensagem = "Falha ao obter sorvetes"
 	}
 
 	return resultado
 }
 
-// Adicionar um sorvete na collection
-export async function adicionar_sorvete( nome, estoque, url_imagem ){
-    if( typeof nome == "string" )
-        nome = remover_acento( nome.toLowerCase().trim() )
+/**
+ * Obter documento da Collection pelo id
+ * @param   { string } id Id do documento
+ * @returns { Promisse< Resultado > }
+ */
+export async function obter_sorvete_id( id ){
+    let resultado = new Resultado()
+    
+    if( !await Helper.validador_id(id) ){
+        resultado.sucesso = false
+        resultado.mensagem = "ID inválido"
+        return resultado
+    }
+    
+    try {
+        let documento = doc( DB, DB_NOME, id ),
+            sorvete = await getDoc( documento )
 
-    let resultado = new Resultado(),
-        sorvete = new Sorvete( nome, estoque, url_imagem )
+        // Encontrado na Collection
+        if( sorvete.exists() ){
+            resultado.mensagem = "Sorvete obtido com sucesso"
+            resultado.resultados = [{
+                _id: sorvete.id,
+                ...sorvete.data()
+            }]
+        
+        // Não encontrado
+        } else {
+            resultado.sucesso = false
+            resultado.mensagem = "Sorvete não encontrado"
+        }
+
+    } catch( e ){
+        console.error( "--- Erro obter_sorvete_id --- \n", e )
+        resultado.sucesso = false
+        resultado.mensagem = `Falha interna ao obter sorvete ${id}`
+    }
+
+    return resultado
+}
+
+/**
+ * Obter campo específico de determinado documento pelo id
+ * @param   { string } id Id do documento
+ * @param   { string } campo Nome do campo
+ * @returns { Promisse< Resultado > }
+ */
+export async function obter_campo_sorvete( id, campo ){
+    // Validação campo
+    if( typeof campo == "string" && campo != ""  ) 
+        campo = campo.toLowerCase().trim()
+
+    let resultado = await obter_sorvete_id( id )
+    
+    // Documento não encontrado
+    if( !resultado.sucesso ){
+        return resultado
+    }
+
+    // Campo encontrado
+    if( campo in resultado.resultados[0] ){
+        resultado.mensagem = "Campo obtido com sucesso"
+        resultado.resultados = [ 
+            resultado.resultados[ 0 ][ campo ] 
+        ]
+    
+    // Campo não encontrado
+    } else {
+        resultado.sucesso = false
+        resultado.mensagem = "Campo não presente no schema do sorvete"
+        resultado.resultados = []
+    }
+
+    return resultado
+}
+
+/**
+ * Adicionar um sorvete na Collection
+ * @param   { Sorvete } sorvete Classe/Objeto Sorvete
+ * @returns { Promisse< Resultado > }
+ */
+export async function adicionar_sorvete( sorvete ){
+    let resultado = new Resultado()
 
     // Dados não válidos
-    if( !validador_schema(sorvete) ){
+    if( !await Schema.validador(sorvete) ){
         resultado.sucesso = false
         resultado.mensagem = "Dados informados não estão de acordo com o schema do sorvete"
         return resultado
     }
     
     try {
-        let sorvetes = (await obter_sorvetes()).resultados,
-            duplicado = sorvetes.some( item => 
-                remover_acento( item.nome ) == nome
+        // Padronização dos nomes
+        sorvete.nome = await Schema.corrigir_nome( sorvete.nome )
+
+        let sorvetes = await obter_sorvetes(),
+            duplicado = sorvetes.resultados.some( item => 
+                item.nome == sorvete.nome
             )
             
         // Nome duplicado no banco de dados
@@ -67,112 +156,42 @@ export async function adicionar_sorvete( nome, estoque, url_imagem ){
         }
 
         // Validado com Sucesso, inserir no database
-        await addDoc( SORVETE_COLLECTION, {...sorvete} )
+        let documento = await addDoc( SORVETE_COLLECTION, sorvete )
         resultado.mensagem = "Sorvete adicionado com sucesso"
+        resultado.resultados = [{
+            _id: documento.id,
+            ...sorvete
+        }]
 
 	} catch( e ){
 		console.error( "--- Erro adicionar_sorvete --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = `Falha ao adicionar sorvete ${nome}. Olhe o Log para mais detalhes`
+        resultado.mensagem = `Falha interna ao adicionar sorvete ${sorvete.nome}`
 	}
 
 	return resultado
 }
 
-// Obter um id de um documento com base no nome do sorvete
-export async function obter_id_sorvete( nome ){
+/**
+ * Apagar um sorvete na Collection
+ * @param   { string } id Id do documento
+ * @returns { Promisse< Resultado > }
+ */
+export async function apagar_sorvete( id ){
     let resultado = new Resultado()
     
-    // Validação nome
-    if( typeof nome == "string" )
-        nome = remover_acento( nome.toLowerCase().trim() )
-    else {
+    // Validação do id
+    if( !await Helper.validador_id(id) ){
         resultado.sucesso = false
-        resultado.mensagem = "Nome do sorvete inválido"
+        resultado.mensagem = "ID inválido"
         return resultado
     }
 
-    try {
-		let documentos = await getDocs( 
-                query( SORVETE_COLLECTION, where("nome", "==", nome) )
-            )
-        
-        // Não encontrado
-        if( documentos.empty ){
-            resultado.sucesso = false
-            resultado.mensagem = "Nome do sorvete não encontrado"
-            return resultado
-        }
-
-        documentos.docs.forEach( doc => resultado.resultados.push(doc.id) )
-        resultado.mensagem = `${documentos.docs.length} sorvete(s) encontrado(s)`
-
-	} catch( e ){
-		console.error( "--- Erro obter_id_sorvete --- \n", e )
-		resultado.sucesso = false
-        resultado.mensagem = `Falha ao obter id do sorvete ${nome}. Olhe o Log para mais detalhes`
-	}
-
-    return resultado
-}
-
-// Atualizar sorvete com base no nome
-export async function atualizar_sorvete( nome, estoque, url_imagem ){
-    if( typeof nome == "string" )
-        nome = remover_acento( nome.toLowerCase().trim() )
-
-    let resultado = new Resultado(),
-        sorvete = new Sorvete( nome, estoque, url_imagem )
-
-    // Dados não válidos
-    if( !validador_schema(sorvete) ){
-        resultado.sucesso = false
-        resultado.mensagem = "Dados informados não estão de acordo com o schema do sorvete"
+    resultado = await obter_sorvete_id( id )
+    
+    // Validação se o id existe
+    if( !resultado.sucesso ) 
         return resultado
-    }
-
-    resultado = await obter_id_sorvete( nome )
-    
-    // Validação se o id foi encontrado
-    if( !resultado.sucesso ) return resultado
-    
-    let id = resultado.resultados[0]
-    
-    try {
-		let documento = doc( DB, DB_NOME, id )
-        await updateDoc( documento, {...sorvete} )
-        
-        resultado.mensagem = "Sorvete atualizado com sucesso"
-        resultado.resultados = []
-
-	} catch( e ){
-		console.error( "--- Erro atualizar_estoque_sorvete --- \n", e )
-		resultado.sucesso = false
-        resultado.mensagem = `Falha ao atualizar o estoque do sorvete ${nome}. Olhe o Log para mais detalhes`
-	}
-
-    return resultado
-}
-
-// Apagar sorvete
-export async function apagar_sorvete( nome ){
-    let resultado = new Resultado()
-    
-    // Validação nome
-    if( typeof nome == "string" )
-        nome = remover_acento( nome.toLowerCase().trim() )
-    else {
-        resultado.sucesso = false
-        resultado.mensagem = "Falha na validação dos dados"
-        return resultado
-    }
-
-    resultado = await obter_id_sorvete( nome )
-    
-    // Validação se o id foi encontrado
-    if( !resultado.sucesso ) return resultado
-    
-    let id = resultado.resultados[0]
     
     try {
 		let documento = doc( DB, DB_NOME, id )
@@ -184,7 +203,57 @@ export async function apagar_sorvete( nome ){
 	} catch( e ){
 		console.error( "--- Erro apagar_sorvete --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = `Falha ao apagar o sorvete ${nome}. Olhe o Log para mais detalhes`
+        resultado.mensagem = `Falha interna ao apagar o sorvete ${id}`
+	}
+
+    return resultado
+}
+
+/**
+ * Atualizar sorvete na Collection. Não suporta atualização do _id
+ * @param   { Sorvete } sorvete Classe/Objeto Sorvete
+ * @returns { Promisse< Resultado > }
+ */
+export async function atualizar_sorvete( sorvete ){
+    let resultado = new Resultado()
+    
+    // Dados não válidos
+    if( !await Schema.validador(sorvete) ){
+        resultado.sucesso = false
+        resultado.mensagem = "Dados informados não estão de acordo com o schema do sorvete"
+        return resultado
+    
+    // ID não presente
+    } else if( !("_id" in sorvete) ){
+        resultado.sucesso = false
+        resultado.mensagem = "Obrigatório informar o _id presente no schema para atualização"
+        return resultado
+    }
+
+    resultado = await obter_sorvete_id( sorvete._id )
+    
+    // Validação se o id foi encontrado
+    if( !resultado.sucesso ) 
+        return resultado
+    
+    try {
+        // Padronização dos nomes
+        sorvete.nome = await Schema.corrigir_nome( sorvete.nome )
+
+		let documento = doc( DB, DB_NOME, sorvete._id )
+        
+        // Id não fica dentro do documento
+        delete sorvete._id
+
+        await setDoc( documento, sorvete )
+        
+        resultado.mensagem = "Sorvete atualizado com sucesso"
+        resultado.resultados = []
+
+	} catch( e ){
+		console.error( "--- Erro atualizar_sorvete --- \n", e )
+		resultado.sucesso = false
+        resultado.mensagem = `Falha interna ao atualizar o sorvete ${sorvete.nome}`
 	}
 
     return resultado

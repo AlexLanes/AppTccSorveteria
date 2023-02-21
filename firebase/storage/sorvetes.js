@@ -3,9 +3,9 @@
 import { getStorage, ref, listAll, getDownloadURL, deleteObject, uploadBytes } from "firebase/storage";
 import { Resultado } from "../../schemas/resultado.js"
 import { remover_acento } from "../../helper/funções.js"
+import { firebase } from "../firebase.js"
 
-const { firebase } = import( "./firebase.js" ),
-      STORAGE = getStorage( firebase ),
+const STORAGE = getStorage( firebase ),
       STORAGE_NAME = "sorvetes"
 
 export async function obter_nomes_imagens_sorvetes(){
@@ -22,7 +22,7 @@ export async function obter_nomes_imagens_sorvetes(){
     } catch( e ){
 		console.error( "--- Erro obter_nomes_imagens_sorvetes --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = `Falha ao obter nomes das imagens dos sorvetes. Olhe o Log para mais detalhes`
+        resultado.mensagem = `Falha ao obter nomes das imagens dos sorvetes`
 	}
 
     return resultado
@@ -84,7 +84,7 @@ export async function obter_url_imagem_sorvete( nome ){
     } catch( e ){
 		console.error( "--- Erro obter_url_imagem_sorvete --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = `Falha ao obter url da imagens do sorvete ${nome}. Olhe o Log para mais detalhes`
+        resultado.mensagem = `Falha ao obter url da imagens do sorvete ${nome}`
 	}
 
     return resultado
@@ -108,7 +108,7 @@ export async function apagar_imagem_sorvete( nome ){
     } catch( e ){
 		console.error( "--- Erro apagar_imagem_sorvete --- \n", e )
 		resultado.sucesso = false
-        resultado.mensagem = `Falha ao apagar imagem do sorvete ${nome}. Olhe o Log para mais detalhes`
+        resultado.mensagem = `Falha ao apagar imagem do sorvete ${nome}`
 	}
 
     return resultado
@@ -128,7 +128,7 @@ export async function upload_imagem_sorvete( imagem ){
     // } catch( e ){
 	// 	console.error( "--- Erro obter_url_imagem_sorvete --- \n", e )
 	// 	resultado.sucesso = false
-    //     resultado.mensagem = `Falha ao obter url da imagens do sorvete ${nome}. Olhe o Log para mais detalhes`
+    //     resultado.mensagem = `Falha ao obter url da imagens do sorvete ${nome}`
 	// }
 
     // return resultado

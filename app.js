@@ -1,17 +1,23 @@
 "use strict"
 
-// Inicializar o dotenv
+// Inicialização de pacotes
 import * as dotenv from "dotenv"
+import Express from "express"
+import compression from "compression"
+
+// Variáveis
 dotenv.config()
 
-// Inicializar o express
-import Express from "express"
+/**
+ * Inicialização do express App
+ */
 export const express = Express()
 
-// Configurando middleware
+// Configurando middleware de inicialização
 import { router as autorização } from "./express/middleware/autorização.js"
-express.use( autorização )
 express.use( Express.json() )
+express.use( compression() )
+express.use( autorização )
 
 // Carregando rotas do express dinamicamente
 import fs from "fs-extra"
@@ -21,6 +27,6 @@ fs.readdirSync( routes ).forEach( async (arquivo) => {
 	express.use( router )
 })
 
-express.listen(80, () => {
+express.listen( 80, () => {
 	console.log(`Example app listening on port 80`)
 })
