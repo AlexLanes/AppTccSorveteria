@@ -14,12 +14,14 @@ dotenv.config()
 export const express = Express()
 
 // Configurando middleware de inicialização
-import { router as autorização } from "./express/middleware/autorização.js"
 express.use( Express.json() )
 express.use( compression() )
+import { router as autorização } from "./express/middleware/autorização.js"
 express.use( autorização )
+// import { router as operações } from "./express/middleware/operações.js"
+// express.use( operações )
 
-// Carregando rotas do express dinamicamente
+// Carregando routers do express dinamicamente
 import fs from "fs-extra"
 const routes = "./express/routes"
 fs.readdirSync( routes ).forEach( async (arquivo) => {
@@ -27,6 +29,6 @@ fs.readdirSync( routes ).forEach( async (arquivo) => {
 	express.use( router )
 })
 
-express.listen( 80, () => {
-	console.log(`Example app listening on port 80`)
+express.listen( process.env.PORT, () => {
+	console.log(`App executando na porta ${process.env.PORT}`)
 })
