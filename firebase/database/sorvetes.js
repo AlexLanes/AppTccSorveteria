@@ -142,6 +142,8 @@ export async function adicionar_sorvete( sorvete ){
     try {
         // Padronização dos nomes
         sorvete.nome = await Schema.corrigir_nome( sorvete.nome )
+        // Caso tenha sido passado _id no request, ele será removido
+        delete sorvete._id
 
         let sorvetes = await obter_sorvetes(),
             duplicado = sorvetes.resultados.some( item => 
