@@ -32,7 +32,7 @@ async function validacao_nome_sorvete( nome ){
     let resultado = new Resultado()
     
     // Validação nome
-    if( typeof nome == "string" )
+    if( typeof nome === "string" )
         nome = remover_acento( nome.toLowerCase().trim() )
     else {
         resultado.sucesso = false
@@ -51,7 +51,7 @@ async function validacao_nome_sorvete( nome ){
         )
         
     // Nome existe no Storage
-    if( caminho == undefined ){
+    if( caminho === undefined ){
 		resultado.sucesso = false
         resultado.mensagem = `Imagem de nome ${nome} não encontrada em ${STORAGE_NAME}`
         resultado.resultados = []

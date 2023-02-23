@@ -25,9 +25,9 @@ export class Resultado {
 	}
 }
 
-export const schema = {
+export const SCHEMA = {
 	"type": "object",
-	"required": ["sucesso", "mensagem", "resultados"],
+	"required": [ "sucesso", "mensagem", "resultados" ],
 	"properties": {
 		"sucesso": {
 			"type": "boolean",

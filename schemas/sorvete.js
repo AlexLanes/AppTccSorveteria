@@ -1,5 +1,9 @@
 "use strict"
 
+// Dependências
+import { remover_acento } from "../helper/funções.js"
+import { validate } from "jsonschema"
+
 export class Sorvete {
 	nome
 	estoque
@@ -19,11 +23,13 @@ export class Sorvete {
 	}
 }
 
-import { validate } from "jsonschema"
-
-export const schema = {
+/**
+ * Json-schema da Classe/Objeto Sorvete
+ * @typedef { Object }
+ */
+export const SCHEMA = {
 	"type": "object",
-	"required": ["nome", "estoque", "url_imagem"],
+	"required": [ "nome", "estoque", "url_imagem" ],
 	"properties": {
 		"_id": {
 			"type": "string",
@@ -53,10 +59,8 @@ export const schema = {
  * @returns { Primisse< boolean > } Retorna true caso seja compatível com o json-schema
  */
 export async function validador( sorvete ){
-	return validate( sorvete, schema ).valid
+	return validate( sorvete, SCHEMA ).valid
 };
-
-import { remover_acento } from "../helper/funções.js"
 
 /**
  * Correção dos nomes dos sorvetes para padronização
@@ -64,7 +68,7 @@ import { remover_acento } from "../helper/funções.js"
  * @returns { Promise< string > } Nome do sorvete sem acentuação e minúsculo
  */
 export async function corrigir_nome( nome ){
-	return ( typeof nome == "string" ) 
+	return ( typeof nome === "string" ) 
 		? await remover_acento( nome.trim().toLowerCase() )
 		: nome
 }

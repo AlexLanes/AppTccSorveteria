@@ -1,25 +1,27 @@
 "use strict"
 
-// Inicialização de pacotes
-import * as dotenv from "dotenv"
+// Dependências
+import dotenv from "dotenv"
 import Express from "express"
-import compression from "compression"
+import { router as autorização } from "./express/middleware/autorização.js"
+import { router as requisição } from "./express/middleware/requisição.js"
+import { router as operações } from "./express/middleware/operações.js"
+import { router as resposta } from "./express/middleware/resposta.js"
+import { router as erro } from "./express/middleware/erro.js"
 
-// Variáveis
+// Iniciar dotenv
 dotenv.config()
 
 /**
  * Inicialização do express App
+ * @typedef { Express }
  */
 export const express = Express()
 
-// Configurando middleware de inicialização
-express.use( Express.json() )
-express.use( compression() )
-import { router as autorização } from "./express/middleware/autorização.js"
+// Configurando middleware anteriores às rotas
 express.use( autorização )
-// import { router as operações } from "./express/middleware/operações.js"
-// express.use( operações )
+express.use( requisição )
+express.use( operações )
 
 // Carregando routers do express dinamicamente
 import fs from "fs-extra"
@@ -29,6 +31,10 @@ fs.readdirSync( routes ).forEach( async (arquivo) => {
 	express.use( router )
 })
 
+// Configurando middleware posteriores às rotas
+express.use( erro )
+express.use( resposta )
+
 express.listen( process.env.PORT, () => {
-	console.log(`App executando na porta ${process.env.PORT}`)
+	console.log( `App executando na porta ${process.env.PORT}` )
 })

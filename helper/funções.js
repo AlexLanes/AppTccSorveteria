@@ -16,6 +16,6 @@ export async function remover_acento( string ){
  */
 export async function validador_id( id ){
     return (
-        typeof id == "string" && /^\w+$/.test( id )
+        typeof id === "string" && /^\w+$/.test( id )
     )
 }

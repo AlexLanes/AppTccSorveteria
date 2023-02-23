@@ -1,6 +1,6 @@
 "use strict"
 
-import * as dotenv from "dotenv"
+import dotenv from "dotenv"
 import { initializeApp } from "firebase/app"
 
 // Inicializar o dotenv
