@@ -15,7 +15,5 @@ export async function remover_acento( string ){
  * @returns { Promisse< string > } Retorna true se for válido
  */
 export async function validador_id( id ){
-    return (
-        typeof id === "string" && /^\w+$/.test( id )
-    )
+    return typeof id === "string" && /^\w+$/.test( id )
 }

@@ -1,16 +1,13 @@
 // Dependências
+import { TIPOS } from "../http/middleware/requisição.js"
+import * as Resultado from "./resultado.js"
+import { MENSAGENS } from "./mensagens.js"
+import * as Sorvete from "./sorvete.js"
 import dotenv from "dotenv"
 dotenv.config()
 
-// Schemas 
-import * as Sorvete from "./sorvete.js"
-import * as Resultado from "./resultado.js"
-import { TIPOS } from "../express/middleware/requisição.js"
-import { MENSAGENS } from "./mensagens.js"
-
 /**
  * Padroes da especificação reutilizáveis
- * @typedef { Object }
  */
 const PADRÕES = {
     /** Tags utilizadas na especificação */
@@ -117,10 +114,32 @@ const PADRÕES = {
 }
 
 /**
+ * Encontrar a tag "especificação" e retornar o caminho da operação
+ * @returns { Promise< Resultado > }
+ */
+export async function caminho_especificação(){
+    let resultado = new Resultado.Resultado(),
+        caminho = Object
+            .keys( ESPECIFICAÇÃO.paths )
+            .find( caminho => Object
+                .values( ESPECIFICAÇÃO.paths[caminho] )
+                .some( método => método.tags.includes(PADRÕES.tags[0]) )
+            )
+    
+    // Encontrado
+    if( caminho !== undefined ) 
+        resultado.resultados = [ `${process.env.API_PATH}${caminho}` ]
+    // Não encontrado
+    else resultado.sucesso = false
+    
+    return resultado
+}
+
+/**
  * Especificação OpenAPI
  * @typedef { Object }
  */
-export const especificação = {
+export const ESPECIFICAÇÃO = {
     "openapi": "3.1.0",
     "info": {
         "version": "1.0.0",
@@ -136,7 +155,7 @@ export const especificação = {
             "get": {
                 "tags": [ PADRÕES.tags[0] ],
                 "operationId": "obter-especificação",
-                "summary": "Obter a especificação da API",
+                "summary": "Obter a especificação da API. Não é necessário informar a apikey",
                 "parameters": [
                     PADRÕES.parameters.Accept, PADRÕES.parameters["Content-Type"]
                 ]

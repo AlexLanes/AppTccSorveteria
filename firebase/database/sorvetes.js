@@ -23,7 +23,7 @@ export async function obter_sorvetes(){
 		let documentos = await getDocs( SORVETE_COLLECTION ),
             documentos_invalidos = 0
 
-		await documentos.docs.forEach( async (documento) => {
+		await documentos.docs.forEach( async( documento) => {
 			let sorvete = documento.data()
 			if( await Schema.validador(sorvete) ){
                 resultado.resultados.push({ 

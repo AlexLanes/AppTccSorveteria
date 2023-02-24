@@ -1,40 +1,37 @@
 "use strict"
 
 // Dependências
+import { Operações, Roteador } from "./http/middleware/operações.js"
+import { Autorização } from "./http/middleware/autorização.js"
+import { Requisição } from "./http/middleware/requisição.js"
+import { Resposta } from "./http/middleware/resposta.js"
+import { Erro } from "./http/middleware/erro.js"
+import { createServer } from "node:http"
 import dotenv from "dotenv"
-import Express from "express"
-import { router as autorização } from "./express/middleware/autorização.js"
-import { router as requisição } from "./express/middleware/requisição.js"
-import { router as operações } from "./express/middleware/operações.js"
-import { router as resposta } from "./express/middleware/resposta.js"
-import { router as erro } from "./express/middleware/erro.js"
-
-// Iniciar dotenv
 dotenv.config()
 
-/**
- * Inicialização do express App
- * @typedef { Express }
- */
-export const express = Express()
+const app = 
+	// Criação do Servidor
+	createServer()
 
-// Configurando middleware anteriores às rotas
-express.use( autorização )
-express.use( requisição )
-express.use( operações )
+	// Inicialização do Servidor
+	.listen( process.env.PORT )
 
-// Carregando routers do express dinamicamente
-import fs from "fs-extra"
-const routes = "./express/routes"
-fs.readdirSync( routes ).forEach( async (arquivo) => {
-	let { router } = await import( `${routes}/${arquivo}` )
-	express.use( router )
-})
+	// Ouvinte dos Requests
+	.on( "request", async( request, response ) => {
+		try {
+			await Requisição( request, response )
+			await Operações( request, response )
+			await Autorização( request, response )
+			await Roteador( request, response )
 
-// Configurando middleware posteriores às rotas
-express.use( erro )
-express.use( resposta )
-
-express.listen( process.env.PORT, () => {
-	console.log( `App executando na porta ${process.env.PORT}` )
-})
+		} catch( erro ){
+			await Erro( response, erro )
+		
+		} finally {
+			await Resposta( request, response )
+		}
+		
+		// Encerrar request
+		response.end()
+	})

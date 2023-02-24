@@ -60,7 +60,7 @@
 			 * @param	{ Error } erro Erro capturado no Catch
 			 * @returns { String } `Falha na conversão do body. ${erro}` 
 			 * */
-			conversão_body: ( erro ) => { return `Falha na conversão do body. ${erro}` },
+			conversãobody: ( erro ) => { return `Falha na conversão do body. ${erro}` },
 
 			/**
 			 * @param 	{ String } nome Nome do Accept informado no Request
@@ -72,7 +72,7 @@
 			 * @param 	{ String } nome Nome do Content-Type informado no Request
 			 * @returns { String } `Content-Type' ${nome} 'não suportado`
 			 */
-			"content-type": ( nome ) => { return `Content-Type' ${nome} 'não suportado` },
+			"content-type": ( nome ) => { return `Content-Type '${nome}' não suportado` },
 
 			/** "Autorização não informada" */
 			autorização_não_informada: "Autorização não informada",
