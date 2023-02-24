@@ -10,8 +10,8 @@ dotenv.config()
 
 /** Accept e Content-Type aceitos */
 export const TIPOS = {
-    accept : [ "*/*", "application/json", "application/yaml" ],
-    "content-type": [ "application/json", "application/yaml" ]
+    accept : [ "*/*", "application/json", "application/x-yaml" ],
+    "content-type": [ "application/json", "application/x-yaml" ]
 }
 
 /**
