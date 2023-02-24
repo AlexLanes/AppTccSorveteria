@@ -71,18 +71,21 @@ async function capturar_body( request, response ){
  */ 
 async function validar_headers( request, response ){
     let { accept, "content-type": content } = request.parâmetros.headers
-        
-    // Validação se a API pode responder no formato requisitado
-    if( !TIPOS.accept.includes(accept) ){
+    
+    // Validação se a API pode responder em algum dos formatos requisitados
+    request.parâmetros.headers.accept = accept.split( "," )
+        .find( item => TIPOS.accept.includes( item.split(";")[0] ))
+    if( request.parâmetros.headers.accept === undefined ){
         response.statusCode = 406
         throw new Resultado( 
             false, 
             MENSAGENS.global.erro.accept( accept ), 
             TIPOS.accept 
         )
-        
+    } else request.parâmetros.headers.accept = request.parâmetros.headers.accept.split( ";" )[ 0 ]
+            
     // Validação se a API aceita o formato recebido
-    } else if( content !== undefined && !TIPOS["content-type"].includes(content) ){
+    if( content !== undefined && !TIPOS["content-type"].includes(content) ){
         response.statusCode = 406
         throw new Resultado( 
             false, 
