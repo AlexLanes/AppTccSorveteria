@@ -18,6 +18,11 @@ dotenv.config()
 export async function Resposta( request, response ){
     let { accept = TIPOS.accept[0] } = request.headers
 
+    // CORS
+    response.setHeader('Access-Control-Allow-Origin', '*')
+    response.setHeader('Access-Control-Allow-Methods', '*');
+    response.setHeader('Access-Control-Max-Age', 600); // 30 days
+
     if( response.body === undefined ){
         response.body = {}
         response.statusCode = 204
