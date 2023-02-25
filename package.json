@@ -20,7 +20,6 @@
   "homepage": "https://github.com/AlexLanes/AppTccSorveteria#readme",
   "type": "module",
   "dependencies": {
-    "compression": "^1.7.4",
     "dotenv": "^16.0.3",
     "firebase": "^9.17.1",
     "jsonschema": "^1.4.1",

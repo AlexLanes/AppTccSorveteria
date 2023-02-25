@@ -5,7 +5,6 @@ import { IncomingMessage, ServerResponse } from "node:http"
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
 import { TIPOS } from "./requisição.js"
-// import compression from "compression" // compression()
 import { stringify } from "yaml"
 import dotenv from "dotenv"
 dotenv.config()

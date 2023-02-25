@@ -119,7 +119,7 @@ async function parâmetros_request( request, response ){
             variáveis: {}
         }
     }
-    
+
     // Query Parameters
     let posição = decodeURI( request.url ).search( /\?.+$/ )
     if( posição !== -1 && request.url.length > posição ){
