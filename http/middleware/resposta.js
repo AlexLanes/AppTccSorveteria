@@ -20,8 +20,8 @@ export async function Resposta( request, response ){
 
     // CORS
     response.setHeader('Access-Control-Allow-Origin', '*')
-    response.setHeader('Access-Control-Allow-Methods', '*');
-    response.setHeader('Access-Control-Max-Age', 600); // 30 days
+            .setHeader('Access-Control-Allow-Methods', '*')
+            .setHeader('Access-Control-Max-Age', 600)
 
     if( response.body === undefined ){
         response.body = {}
