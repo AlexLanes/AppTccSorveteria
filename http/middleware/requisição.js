@@ -110,9 +110,11 @@ async function parâmetros_request( request, response ){
         headers: request.headers,
         url: {
             método: request.method.toLowerCase(),
-            caminho: decodeURI( request.url )
-                .replace( process.env.API_PATH, "" )
-                .replace( /\?.+$/, "" ),
+            caminho: ( request.url.startsWith(process.env.API_PATH) )
+                ? decodeURI( request.url )
+                    .replace( process.env.API_PATH, "" )
+                    .replace( /\?.+$/, "" )
+                : "",
             querys: {},
             variáveis: {}
         }
