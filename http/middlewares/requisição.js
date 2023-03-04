@@ -205,7 +205,7 @@ async function operação( request, response ){
     else if( operações.includes(caminho) )
         operação = caminho
     // Caminho com variável encontrado 
-    else operação = ESPECIFICAÇÃO.paths[ operações[0] ]
+    else operação = paths.find( path => new RegExp(operações[0]).test(path) )
 
     request.parâmetros.operação = ( operação != "" && método in ESPECIFICAÇÃO.paths[operação] )
         ? operação // Caminho e método compatível
