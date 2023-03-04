@@ -2,13 +2,8 @@
 
 // Dependências
 import { remover_acento } from "../helper/funções.js"
-import { validate } from "jsonschema"
 
 export class Sorvete {
-	nome
-	estoque
-	url_imagem
-
 	/**
 	 * Classe Sorvete
 	 * @param   { string  } nome Nome do sorvete
@@ -25,9 +20,8 @@ export class Sorvete {
 
 /**
  * Json-schema da Classe/Objeto Sorvete
- * @typedef { Object }
  */
-export const SCHEMA = {
+export const SCHEMA_SORVETE = {
 	"type": "object",
 	"required": [ "nome", "estoque", "url_imagem" ],
 	"properties": {
@@ -52,15 +46,6 @@ export const SCHEMA = {
 	},
 	"additionalProperties": false
 }
-
-/**
- * Validador da Classe e objetos Sorvete
- * @param   { Object } sorvete Objeto/Classe Sorvete
- * @returns { Primisse< boolean > } Retorna true caso seja compatível com o json-schema
- */
-export async function validador( sorvete ){
-	return validate( sorvete, SCHEMA ).valid
-};
 
 /**
  * Correção dos nomes dos sorvetes para padronização

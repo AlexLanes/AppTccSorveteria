@@ -2,11 +2,11 @@
 
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
-import { ServerResponse } from "node:http"
+import { Response } from "../classes/response.js"
 
 /**
  * Error Handler padrão
- * @param   { ServerResponse } response 
+ * @param   { Response } response 
  * @param   { (Resultado|Error) } erro 
  * @returns { Promisse< void > }
  */

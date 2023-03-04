@@ -2,16 +2,17 @@
 
 // Dependências
 import { caminho_especificação } from "../../schemas/especificação.js"
-import { IncomingMessage, ServerResponse } from "node:http"
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
+import { Request } from "../classes/request.js"
+import { Response } from "../classes/response"
 import dotenv from "dotenv"
 dotenv.config()
 
 /**
  * Validação da APIKEY
- * @param   { IncomingMessage } request 
- * @param   { ServerResponse } response 
+ * @param   { Request } request 
+ * @param   { Response } response 
  * @returns { Promisse< void > }
  */
 export async function Autorização( request, response ){

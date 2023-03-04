@@ -1,12 +1,12 @@
 "use strict"
 
 // Dependencias
-import { firebase } from "../firebase.js"
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc } from "firebase/firestore/lite"
-import * as Schema from "../../schemas/sorvete.js"
-import * as Helper from "../../helper/funções.js"
+import { corrigir_nome } from "../../schemas/sorvete.js"
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
+import * as Helper from "../../helper/funções.js"
+import { firebase } from "../firebase.js"
 
 const DB = getFirestore( firebase ),
       DB_NOME = "sorvetes",
@@ -20,26 +20,20 @@ export async function obter_sorvetes(){
 	let resultado = new Resultado()
 
 	try {
-		let documentos = await getDocs( SORVETE_COLLECTION ),
-            documentos_invalidos = 0
+		let documentos = await getDocs( SORVETE_COLLECTION )
 
-		await documentos.docs.forEach( async( documento) => {
+		await documentos.docs.forEach( async(documento) => {
 			let sorvete = documento.data()
-			if( await Schema.validador(sorvete) ){
-                resultado.resultados.push({ 
-                    _id: documento.id, 
-                    ...sorvete
-                })
-            }
-            else documentos_invalidos++
+            resultado.resultados.push({ 
+                _id: documento.id, 
+                ...sorvete
+            })
         })
         
-        resultado.mensagem = ( documentos_invalidos === 0 ) 
-            ? MENSAGENS.sorvete.sucesso.sorvete_obtido( resultado.resultados.length ) 
-            : MENSAGENS.sorvete.sucesso.sorvete_obtido_aviso( resultado.resultados.length, documentos_invalidos )
+        resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_obtido( resultado.resultados.length ) 
 
 	} catch( erro ){
-		console.error( "--- Erro obter_sorvetes --- \n", e )
+		console.error( "--- Erro obter_sorvetes --- \n", erro )
 		resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.interno( erro )
 	}
@@ -80,7 +74,7 @@ export async function obter_sorvete_id( id ){
         }
 
     } catch( erro ){
-        console.error( "--- Erro obter_sorvete_id --- \n", e )
+        console.error( "--- Erro obter_sorvete_id --- \n", erro )
         resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.interno( erro )
     }
@@ -102,9 +96,8 @@ export async function obter_campo_sorvete( id, campo ){
     let resultado = await obter_sorvete_id( id )
     
     // Documento não encontrado
-    if( !resultado.sucesso ){
+    if( !resultado.sucesso )
         return resultado
-    }
 
     // Campo encontrado
     if( campo in resultado.resultados[0] ){
@@ -130,17 +123,10 @@ export async function obter_campo_sorvete( id, campo ){
  */
 export async function adicionar_sorvete( sorvete ){
     let resultado = new Resultado()
-
-    // Dados não válidos
-    if( !await Schema.validador(sorvete) ){
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.schema_inválido
-        return resultado
-    }
     
     try {
         // Padronização dos nomes
-        sorvete.nome = await Schema.corrigir_nome( sorvete.nome )
+        sorvete.nome = await corrigir_nome( sorvete.nome )
         // Caso tenha sido passado _id no request, ele será removido
         delete sorvete._id
 
@@ -165,7 +151,7 @@ export async function adicionar_sorvete( sorvete ){
         }]
 
 	} catch( erro ){
-		console.error( "--- Erro adicionar_sorvete --- \n", e )
+		console.error( "--- Erro adicionar_sorvete --- \n", erro )
 		resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.interno( erro )
 	}
@@ -202,7 +188,7 @@ export async function apagar_sorvete( id ){
         resultado.resultados = []
 
 	} catch( erro ){
-		console.error( "--- Erro apagar_sorvete --- \n", e )
+		console.error( "--- Erro apagar_sorvete --- \n", erro )
 		resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.interno( erro )
 	}
@@ -218,14 +204,8 @@ export async function apagar_sorvete( id ){
 export async function atualizar_sorvete( sorvete ){
     let resultado = new Resultado()
     
-    // Dados não válidos
-    if( !await Schema.validador(sorvete) ){
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.schema_inválido
-        return resultado
-    
     // ID não presente
-    } else if( !("_id" in sorvete) ){
+    if( !("_id" in sorvete) ){
         resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.id_obrigatório
         return resultado
@@ -239,7 +219,7 @@ export async function atualizar_sorvete( sorvete ){
     
     try {
         // Padronização dos nomes
-        sorvete.nome = await Schema.corrigir_nome( sorvete.nome )
+        sorvete.nome = await corrigir_nome( sorvete.nome )
 
 		let documento = doc( DB, DB_NOME, sorvete._id )
         
@@ -252,7 +232,7 @@ export async function atualizar_sorvete( sorvete ){
         resultado.resultados = []
 
 	} catch( erro ){
-		console.error( "--- Erro atualizar_sorvete --- \n", e )
+		console.error( "--- Erro atualizar_sorvete --- \n", erro )
 		resultado.sucesso = false
         resultado.mensagem = MENSAGENS.global.erro.interno( erro )
 	}

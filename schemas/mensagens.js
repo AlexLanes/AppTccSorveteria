@@ -1,6 +1,5 @@
 /**
- * Mensagens utilizadas pela API
- * @typedef { Object }
+ * Mensagens de Resposta utilizadas pela API
  */
  export const MENSAGENS = {
 	sorvete: {
@@ -11,15 +10,6 @@
 			 */
 			sorvete_obtido: ( quantidade ) => { 
 				return `${quantidade} sorvete(s) obtido(s)` 
-			},
-		
-			/**
-			 * @param 	{ Number } quantidade Length do Resultado.resultados
-			 * @param 	{ Number } quantidade_inválidos Quantidade dos inválidos
-			 * @returns { String } `${quantidade} sorvete(s) obtido(s). ${quantidade_inválidos} sorvete(s) inválido(s) não retornado(s)`
-			 */
-			sorvete_obtido_aviso: ( quantidade, quantidade_inválidos ) => { 
-				return `${quantidade} sorvete(s) obtido(s). ${quantidade_inválidos} sorvete(s) inválido(s) não retornado(s)`
 			},
 		
 			/** "Campo do sorvete obtido com sucesso" */
@@ -33,6 +23,17 @@
 		
 			/** "Sorvete atualizado com sucesso" */
 			sorvete_atualizado: "Sorvete atualizado com sucesso",
+
+			/**
+			 * @param 	{ Number } quantidade Length do Resultado.resultados
+			 * @returns { String } `${quantidade} imagem(ns) obtida(s)` 
+			 */
+			obter_imagens: ( quantidade ) => {
+				return `${quantidade} imagem(ns) obtida(s)`
+			},
+
+			/** "Upload da imagem feito com sucesso" */
+			upload: "Upload da imagem feito com sucesso"
 		},
 		erro: {
             /** "Sorvete já existente na base de dados" */
@@ -60,7 +61,7 @@
 			 * @param	{ Error } erro Erro capturado no Catch
 			 * @returns { String } `Falha na conversão do body. ${erro}` 
 			 * */
-			conversãobody: ( erro ) => { return `Falha na conversão do body. ${erro}` },
+			conversão_body: ( erro ) => { return `Falha na conversão do body. ${erro}` },
 
 			/**
 			 * @param 	{ String } nome Nome do Accept informado no Request
@@ -89,8 +90,8 @@
             /** "Campo não presente no schema" */
             campo_inválido: "Campo não presente no schema",
         
-            /** "Dados informados não estão de acordo com o schema" */
-            schema_inválido: "Dados informados não estão de acordo com o schema"
+            /** "Dados informados não estão de acordo com o schema. ${erro}" */
+            schema_inválido: ( erro ) => { return `Dados informados não estão de acordo com o schema. ${erro}` }
         }
     }
 }

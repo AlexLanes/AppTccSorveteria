@@ -1,39 +1,52 @@
 // Dependências
-import { TIPOS } from "../http/middleware/requisição.js"
 import * as Resultado from "./resultado.js"
 import { MENSAGENS } from "./mensagens.js"
 import * as Sorvete from "./sorvete.js"
 import dotenv from "dotenv"
 dotenv.config()
 
+/** 
+ * Accept e Content-Type aceitos pela API
+ */
+export const HEADERS = {
+    accept : [ "*/*", "application/json", "application/x-yaml" ],
+    "content-type": [ "application/json", "application/x-yaml", "multipart/form-data" ]
+}
+
 /**
  * Padroes da especificação reutilizáveis
  */
 const PADRÕES = {
     /** Tags utilizadas na especificação */
-    tags: [ "especificação", "sorvetes" ],
+    tags: [ "especificação", "sorvete", "anexo" ],
 
     /** Request Parameters */
     parameters: {
-        "Content-Type": {
-            "name": "Content-Type",
-            "description": "Formatos aceitos no corpo da requisição",
-            "in": "header",
-            "required": true,
-            "schema": {
-                "type": "string",
-                "enum": TIPOS["content-type"]
+        /**
+         * Parâmetro Content-Type. Enum parametrizado
+         * @param { Array< String > } _enum
+         */
+        "Content-Type": async( _enum ) => {
+            return {
+                "name": "Content-Type",
+                "description": "Formatos aceitos no corpo da requisição",
+                "in": "header",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "enum": ( Array.isArray(_enum) ) ? _enum : HEADERS["content-type"]
+                }
             }
         },
-        "Accept": {
+        Accept: {
             "name": "Accept",
             "description": "Formatos possíveis de resposta",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
                 "type": "string",
-                "enum": TIPOS.accept,
-                "default": TIPOS.accept[ 1 ]
+                "enum": HEADERS.accept,
+                "default": HEADERS.accept[ 1 ]
             }
         },
         id: {
@@ -58,17 +71,17 @@ const PADRÕES = {
     },
 
     /**
-     * @param   { String } description Descrição do Request 
-     * @param   { String } schema Nome do schema que fica dentro de "#/components/schemas/"
-     * @param   { any } example Exemplo do request
-     * @returns { Object } Objeto no formato requestBody
+     * @param { String } description Descrição do Request
+     * @param { String } schema Nome do schema que fica dentro de "#/components/schemas/"
+     * @param { Object } example Exemplo do request
+     * @param { String } conteúdo Tipo do conteúdo do request. Default "*//*"
      */
-    request: ( description, schema, example ) => {
+    request: ( description, schema, example, conteúdo = HEADERS.accept[0] ) => {
         return {
             "required": true,
             "description": description,
             "content": {
-                "application/json": {
+                [conteúdo]: {
                     "schema": {
                         "$ref": `#/components/schemas/${schema}`
                     },
@@ -87,7 +100,7 @@ const PADRÕES = {
         return {
             "description": description,
             "content": {
-                "application/json": {
+                "*/*": {
                     "schema": {
                         "$ref": "#/components/schemas/resultado"
                     },
@@ -100,7 +113,7 @@ const PADRÕES = {
     /** Exemplos fixos */
     exemplos: {
         sorvete: {
-            "url_imagem": "",
+            "url_imagem": "https://firebasestorage.googleapis.com/v0/b/apptccsorveteria.appspot.com/o/sorvetes%2Fchocolate.jpeg?alt=media&token=c7624c25-df93-4118-8ea5-f0a81808dabb",
             "estoque": true,
             "nome": "chocolate"
         },
@@ -109,38 +122,40 @@ const PADRÕES = {
             "url_imagem": "",
             "estoque": true,
             "nome": "chocolate"
+        },
+        sorvete_imagem: {
+            "nome": "chocolate.jpeg",
+            "url": "https://firebasestorage.googleapis.com/v0/b/apptccsorveteria.appspot.com/o/sorvetes%2Fchocolate.jpeg?alt=media&token=7a785639-d222-4856-a63a-8f21b9838ffa"
+        },
+        anexo: {
+            "nome": "chocolate.jpeg",
+            "tipo": "image/jpeg",
+            "anexo": "{Anexo}"
         }
     }
 }
 
 /**
  * Encontrar a tag "especificação" e retornar o caminho da operação
- * @returns { Promise< Resultado > }
+ * @returns { Promise< String > }
  */
 export async function caminho_especificação(){
-    let resultado = new Resultado.Resultado(),
-        caminho = Object
-            .keys( ESPECIFICAÇÃO.paths )
-            .find( caminho => Object
-                .values( ESPECIFICAÇÃO.paths[caminho] )
-                .some( método => método.tags.includes(PADRÕES.tags[0]) )
-            )
+    let caminho = Object.keys( ESPECIFICAÇÃO.paths )
+        .find( caminho => Object
+            .values( ESPECIFICAÇÃO.paths[caminho] )
+            .some( método => método.tags.includes(PADRÕES.tags[0]) )
+        )
     
-    // Encontrado
-    if( caminho !== undefined ) 
-        resultado.resultados = [ `${process.env.API_PATH}${caminho}` ]
-    // Não encontrado
-    else resultado.sucesso = false
-    
-    return resultado
+    return ( caminho != undefined ) 
+        ? caminho 
+        : "/"
 }
 
 /**
- * Especificação OpenAPI
- * @typedef { Object }
+ * Especificação OpenAPI da API
  */
 export const ESPECIFICAÇÃO = {
-    "openapi": "3.1.0",
+    "openapi": "3.0.0",
     "info": {
         "version": "1.0.0",
         "title": "AppTccSorveteria",
@@ -157,8 +172,13 @@ export const ESPECIFICAÇÃO = {
                 "operationId": "obter-especificação",
                 "summary": "Obter a especificação da API. Não é necessário informar a apikey",
                 "parameters": [
-                    PADRÕES.parameters.Accept, PADRÕES.parameters["Content-Type"]
-                ]
+                    PADRÕES.parameters.Accept
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Sucesso"
+                  }
+                }
             }
         },
         "/sorvetes": {
@@ -167,7 +187,7 @@ export const ESPECIFICAÇÃO = {
                 "operationId": "obter-sorvetes",
                 "summary": "Obter todos os sorvetes",
                 "parameters": [
-                    PADRÕES.parameters.Accept, PADRÕES.parameters["Content-Type"]
+                    PADRÕES.parameters.Accept
                 ],
                 "responses": {
                     "200": PADRÕES.response(
@@ -179,17 +199,21 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
             },
             "post": {
                 "tags": [ PADRÕES.tags[1] ],
                 "operationId": "criar-sorvete",
                 "summary": "Criar sorvete",
                 "parameters": [
-                    PADRÕES.parameters.Accept, PADRÕES.parameters["Content-Type"]
+                    PADRÕES.parameters.Accept, 
+                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) )
                 ],
                 "requestBody": PADRÕES.request( 
                         "Sorvete que será adicionado. O _id é automático e não é considerado na criação", 
@@ -202,8 +226,8 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_adicionado, [ PADRÕES.exemplos.sorvete_id ] )
                     ),
                     "400": PADRÕES.response(
-                        MENSAGENS.global.erro.schema_inválido, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido )
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
@@ -214,17 +238,21 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( false, MENSAGENS.sorvete.erro.sorvete_duplicado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
             },
             "put": {
                 "tags": [ PADRÕES.tags[1] ],
                 "operationId": "atualizar-sorvete",
                 "summary": "Atualizar sorvete",
                 "parameters": [
-                    PADRÕES.parameters.Accept, PADRÕES.parameters["Content-Type"]
+                    PADRÕES.parameters.Accept, 
+                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) )
                 ],
                 "requestBody": PADRÕES.request( 
                     "Sorvete que será atualizado. O _id é necessário para a atualização", 
@@ -238,17 +266,20 @@ export const ESPECIFICAÇÃO = {
                     ),
                     "400": PADRÕES.response(
                         "Schema incorreto ou _id não informado", 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido )
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
                         new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
             }
         },
         "/sorvetes/{id}": {
@@ -258,8 +289,7 @@ export const ESPECIFICAÇÃO = {
                 "summary": "Obter sorvete pelo id",
                 "parameters": [
                     PADRÕES.parameters.id,
-                    PADRÕES.parameters.Accept, 
-                    PADRÕES.parameters["Content-Type"]
+                    PADRÕES.parameters.Accept
                 ],
                 "responses": {
                     "200": PADRÕES.response( 
@@ -279,10 +309,13 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
             },
             "delete": {
                 "tags": [ PADRÕES.tags[1] ],
@@ -290,8 +323,7 @@ export const ESPECIFICAÇÃO = {
                 "summary": "Apagar sorvete pelo id",
                 "parameters": [
                     PADRÕES.parameters.id,
-                    PADRÕES.parameters.Accept, 
-                    PADRÕES.parameters["Content-Type"]
+                    PADRÕES.parameters.Accept
                 ],
                 "responses": {
                     "200": PADRÕES.response( 
@@ -311,10 +343,13 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
             }
         },
         "/sorvetes/{id}/{campo}": {
@@ -326,7 +361,6 @@ export const ESPECIFICAÇÃO = {
                     PADRÕES.parameters.id,
                     PADRÕES.parameters.campo,
                     PADRÕES.parameters.Accept, 
-                    PADRÕES.parameters["Content-Type"]
                 ],
                 "responses": {
                     "200": PADRÕES.response( 
@@ -346,27 +380,109 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
                     ),
                     "500": PADRÕES.response(
-                        MENSAGENS.global.erro.interno("{Detalhe erro}"), 
+                        "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
                     )
-                }
+                },
+                "security": [{
+                  "apikey": []
+                }]
+            }
+        },
+        "/sorvetes/imagens": {
+            "get": {
+                "tags": PADRÕES.tags.slice( 1, 3 ),
+                "operationId": "obter-imagens-sorvetes",
+                "summary": "Obter as urls das imagens dos sorvetes",
+                "parameters": [
+                    PADRÕES.parameters.Accept, 
+                ],
+                "responses": {
+                    "200": PADRÕES.response( 
+                        "Urls obtidos com sucesso", 
+                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.obter_imagens( 1 ), [PADRÕES.exemplos.sorvete_imagem] )
+                        
+                    ),
+                    "401": PADRÕES.response(
+                        MENSAGENS.global.erro.não_autorizado, 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "500": PADRÕES.response(
+                        "Erro interno",
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
+                    )
+                },
+                "security": [{
+                  "apikey": []
+                }]
+            },
+            "post": {
+                "tags": PADRÕES.tags.slice( 1, 3 ),
+                "operationId": "upload-imagem-sorvete",
+                "summary": "Upload de imagem de sorvete",
+                "parameters": [
+                    PADRÕES.parameters.Accept,
+                    await PADRÕES.parameters["Content-Type"]( [HEADERS["content-type"][2]] )
+                ],
+                "requestBody": PADRÕES.request( 
+                        "Upload de imagem. Nome e Formato são obtidos do anexo caso omitido", 
+                        "anexo",
+                        PADRÕES.exemplos.anexo,
+                        HEADERS[ "content-type" ][ 2 ]
+                ),
+                "responses": {
+                    "201": PADRÕES.response(
+                        MENSAGENS.sorvete.sucesso.upload, 
+                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.upload, [PADRÕES.exemplos.sorvete_imagem] )
+                    ),
+                    "400": PADRÕES.response(
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
+                    ),
+                    "401": PADRÕES.response(
+                        MENSAGENS.global.erro.não_autorizado, 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "500": PADRÕES.response(
+                        "Erro interno",
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
+                    )
+                },
+                "security": [{
+                  "apikey": []
+                }]
             }
         }
     },
     "components": {
         "schemas": {
-            "resultado": Sorvete.SCHEMA,
-            "sorvete": Resultado.SCHEMA
+            "resultado": Resultado.SCHEMA,
+            "sorvete": Sorvete.SCHEMA_SORVETE,
+            "anexo": {
+                "type": "object",
+                "required": [ "anexo" ],
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "description": "Nome do anexo"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "description": "Tipo MIME do anexo"
+                    },
+                    "anexo": {
+                        "description": "Conteúdo anexado"
+                    }
+                },
+                "additionalProperties": false
+            }
         },
         "securitySchemes": {
-            "ApiKey": {
+            "apikey": {
                 "type": "apiKey",
                 "in": "header",
                 "name": "apikey"
             }
         }
-    },
-    "security": [{
-        "ApiKey": []
-    }]
+    }
 }

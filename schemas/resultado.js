@@ -1,10 +1,6 @@
 "use strict"
 
 export class Resultado {
-	sucesso
-	mensagem
-	resultados
-
 	/**
 	 * Classe resultado padrão para resposta do Express e Firebase
 	 * @param  { Boolean   } sucesso Mensagem foi bem sucedida ou não. Default: True
@@ -39,7 +35,8 @@ export const SCHEMA = {
 		},
 		"resultados": {
 			"type": "array",
-			"description": "Itens de resposta, caso haja"
+			"description": "Itens de resposta, caso haja",
+            "items": {}
 		}
 	},
 	"additionalProperties": false
