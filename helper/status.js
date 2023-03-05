@@ -12,6 +12,7 @@ export async function status_mensagem( mensagem ){
         case mensagem.includes("inválido"):
             return 400
         case mensagem.includes("encontrado"):
+        case mensagem.includes("encontrada"):
             return 404
         case mensagem.includes("existente"):
             return 409

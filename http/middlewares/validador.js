@@ -2,9 +2,9 @@
 
 // Dependências
 import { ESPECIFICAÇÃO, caminho_especificação, HEADERS } from "../../schemas/especificação.js"
-import { schema_valido, isNullEmptyUndefined } from "../../helper/funções.js"
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
+import * as Funções from "../../helper/funções.js"
 import { Response } from "../classes/response.js"
 import { Request } from "../classes/request.js"
 
@@ -34,7 +34,7 @@ async function validar_body( request, espec ){
         if( "$ref" in schema )
             schema = ESPECIFICAÇÃO.components.schemas[ schema["$ref"].split("/").slice(-1)[0] ]
         
-        if( !await schema_valido(request.body, schema) )
+        if( !await Funções.schema_valido(request.body, schema) )
             throw "Request body inválido"
     }
 }
@@ -53,11 +53,11 @@ async function validar_parameter( request, parameter, parâmetro ){
         valor = request.parâmetros[ parâmetro ][ nome ]
 
     // Required
-    if( parameter.required && await isNullEmptyUndefined(valor) )
-        throw `${parameter.in} '${nome}' é obrigatório de ser informado`
+    if( parameter.required && await Funções.isNullEmptyUndefined(valor) )
+        throw `${await Funções.capitalizar(parameter.in)} '${nome}' é obrigatório de ser informado`
 
     // Default
-    if( await isNullEmptyUndefined(valor) && "default" in parameter.schema ){
+    if( await Funções.isNullEmptyUndefined(valor) && "default" in parameter.schema ){
         valor = parameter.schema.default
         request.parâmetros[ parâmetro ][ nome ] = valor
     }
@@ -65,23 +65,24 @@ async function validar_parameter( request, parameter, parâmetro ){
     // Type
     if( "type" in parameter.schema ){
         switch( parameter.schema.type ){
-            // Todos os headers são transformados em string, nada a fazer
+            // Todos os parâmetros são transformados em string, nada a fazer
+            // Não valida pattern
             case "string": break 
             // Converter para boolean se possível
             case "boolean":
                 if( valor === "true" ) valor = true
                 else if( valor === "false" ) valor = false
-                else throw `${parameter.in} '${nome}' não é um boolean válido`
+                else throw `${await Funções.capitalizar(parameter.in)} '${nome}' não é um boolean válido`
                 break
             // Converter para integer se possível
             case "integer":
                 if( !Number.isNaN(parseInt(valor)) ) valor = parseInt( valor )
-                else throw `${parameter.in} '${nome}' não é um integer válido`
+                else throw `${await Funções.capitalizar(parameter.in)} '${nome}' não é um integer válido`
                 break
             // Converter para float se possível
             case "number":
                 if( !Number.isNaN(parseFloat(valor)) ) valor = parseFloat( valor )
-                else throw `${parameter.in} '${nome}' não é um number válido`
+                else throw `${await Funções.capitalizar(parameter.in)} '${nome}' não é um number válido`
                 break
             // object, array e null não são validados
             default: break
@@ -92,7 +93,7 @@ async function validar_parameter( request, parameter, parâmetro ){
 
     // Enum
     if( "enum" in parameter.schema && !parameter.schema.enum.includes(valor) )
-        throw `${parameter.in} '${nome}' não prevê o valor '${valor}'`
+        throw `${await Funções.capitalizar(parameter.in)} '${nome}' não prevê o valor '${valor}'`
 }
 
 /**
@@ -167,7 +168,7 @@ export async function Validador( request, response ){
      * Autorização 
      */ 
     if( "security" in espec && espec.security.length >= 1 ){
-        // Por enquanto valida apenas a primeira security, pois podem haver várias
+        // Por enquanto valida apenas a primeira security pois podem haver várias
         let nome_security = Object.keys( espec.security[0] )[0],
             schema = ESPECIFICAÇÃO.components.securitySchemes[ nome_security ]
         

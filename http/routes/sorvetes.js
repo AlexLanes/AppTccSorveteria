@@ -127,6 +127,23 @@ export default {
 
 			response.statusCode = codigo
 			response.body = resultado
+		},
+
+		/**
+		 * Apagar imagem de sorvete pelo nome
+		 * @param   { Request } request 
+		 * @param   { Response } response 
+		 * @returns { Promisse< void > }
+		 */
+		"delete": async( request, response ) => {
+			let { nome } = request.parâmetros.querys,
+				resultado = await strg.apagar_imagem_sorvete( nome ),
+				codigo = ( resultado.sucesso ) 
+					? 200 
+					: await status_mensagem( resultado.mensagem )
+
+			response.statusCode = codigo
+			response.body = resultado
 		}
 	}
 }

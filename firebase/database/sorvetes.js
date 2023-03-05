@@ -49,12 +49,6 @@ export async function obter_sorvetes(){
 export async function obter_sorvete_id( id ){
     let resultado = new Resultado()
     
-    if( !await Helper.validador_id(id) ){
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.id_invalido
-        return resultado
-    }
-    
     try {
         let documento = doc( DB, DB_NOME, id ),
             sorvete = await getDoc( documento )
@@ -131,16 +125,7 @@ export async function adicionar_sorvete( sorvete ){
  * @returns { Promisse< Resultado > }
  */
 export async function apagar_sorvete( id ){
-    let resultado = new Resultado()
-    
-    // Validação do id
-    if( !await Helper.validador_id(id) ){
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.id_invalido
-        return resultado
-    }
-
-    resultado = await obter_sorvete_id( id )
+    let resultado = await obter_sorvete_id( id )
     
     // Validação se o id existe
     if( !resultado.sucesso ) 

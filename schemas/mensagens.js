@@ -30,14 +30,20 @@
 			},
 
 			/** "Upload da imagem feito com sucesso" */
-			upload: "Upload da imagem feito com sucesso"
+			upload: "Upload da imagem feito com sucesso",
+
+			/** "Imagem de sorvete apagada com sucesso" */
+			imagem_apagada: "Imagem de sorvete apagada com sucesso"
 		},
 		erro: {
             /** "Sorvete já existente na base de dados" */
             sorvete_duplicado : "Sorvete já existente na base de dados",
             
             /** "Sorvete não encontrado" */
-            não_encontrado: "Sorvete não encontrado"
+            não_encontrado: "Sorvete não encontrado",
+            
+            /** "Imagem não encontrada" */
+            imagem_não_encontrada: "Imagem não encontrada"
 		}
 	},
     global: {
@@ -77,9 +83,6 @@
 
 			/** "Não autorizado" */
 			não_autorizado: "Não autorizado",
-            
-            /** "id inválido" */
-            id_invalido: "id inválido",
 
             /** "Campo não presente no schema" */
             campo_inválido: "Campo não presente no schema",

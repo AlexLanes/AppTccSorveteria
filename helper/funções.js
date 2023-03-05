@@ -21,13 +21,10 @@ export async function isNullEmptyUndefined( string ){
     return string === undefined || string === null || string === ""
 }
 
-/**
- * Validar os ids do Firestore Database
- * @param   { string } id Id do documento
- * @returns { Promisse< boolean > } Retorna true se for válido
- */
-export async function validador_id( id ){
-    return typeof id === "string" && /^\w+$/.test( id )
+export async function capitalizar( string ){
+    return ( await isNullEmptyUndefined(string) )
+        ? string
+        : string[0].toUpperCase() + string.slice( 1 )
 }
 
 /**

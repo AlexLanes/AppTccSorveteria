@@ -54,18 +54,27 @@ const PADRÕES = {
             "description": "identificador item",
             "in": "path",
             "required": true,
-            "schema":{
+            "schema": {
                 "type": "string",
                 "pattern": "^\\w+$"
             }
         },
-        campo: {
-            "name": "campo",
-            "description": "Nome do campo desejado",
-            "in": "path",
-            "required": true,
-            "schema":{
-                "type": "string"
+
+        /**
+         * Parameter Query
+         * @param { String } nome nome do query parameter
+         * @param { String } descrição descrição do query parameter
+         * @param { Boolean } required flag obrigatório
+         * @param { Object } schema schema do query parameter
+         * @returns
+         */
+        query: async( nome, descrição, required, schema ) => {
+            return {
+                "name": nome,
+                "description": descrição,
+                "in": "query",
+                "required": required,
+                "schema": schema
             }
         }
     },
@@ -262,8 +271,8 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_obtido( 1 ), [ PADRÕES.exemplos.sorvete_id ] )
                     ),
                     "400": PADRÕES.response(
-                        MENSAGENS.global.erro.id_invalido, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.id_invalido )
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
@@ -331,8 +340,8 @@ export const ESPECIFICAÇÃO = {
                         new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_apagado )
                     ),
                     "400": PADRÕES.response(
-                        MENSAGENS.global.erro.id_invalido, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.id_invalido )
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
@@ -405,6 +414,42 @@ export const ESPECIFICAÇÃO = {
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
                         new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "500": PADRÕES.response(
+                        "Erro interno",
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
+                    )
+                },
+                "security": [{
+                  "apikey": []
+                }]
+            },
+            "delete": {
+                "tags": PADRÕES.tags.slice( 1, 3 ),
+                "operationId": "apagar-imagem-sorvete",
+                "summary": "Apagar imagem de sorvete pelo nome",
+                "parameters": [
+                    PADRÕES.parameters.Accept,
+                    await PADRÕES.parameters.query( "nome", "Nome da imagem", true, {
+                        type: "string"
+                    })
+                ],
+                "responses": {
+                    "200": PADRÕES.response(
+                        MENSAGENS.sorvete.sucesso.imagem_apagada, 
+                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.imagem_apagada )
+                    ),
+                    "400": PADRÕES.response(
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
+                    ),
+                    "401": PADRÕES.response(
+                        MENSAGENS.global.erro.não_autorizado, 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "404": PADRÕES.response(
+                        MENSAGENS.sorvete.erro.imagem_não_encontrada, 
+                        new Resultado.Resultado( false, MENSAGENS.sorvete.erro.imagem_não_encontrada )
                     ),
                     "500": PADRÕES.response(
                         "Erro interno",

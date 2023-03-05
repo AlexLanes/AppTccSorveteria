@@ -64,3 +64,33 @@ export async function upload_imagem_sorvete({ anexo, nome, tipo }){
 
     return resultado
 }
+
+/**
+ * Apagar imagem de sorvete
+ * @param { String } nome nome da imagem
+ * @returns { Promisse< Resultado > }
+ */
+export async function apagar_imagem_sorvete( nome ){
+    let resultado = new Resultado(),
+        referência = ref( REFERÊNCIA, nome )
+    
+    try {
+        await deleteObject( referência )
+        resultado.mensagem = MENSAGENS.sorvete.sucesso.imagem_apagada
+
+    } catch( erro ){
+        resultado.sucesso = false
+        switch( erro.code ){
+            case "storage/object-not-found":
+                resultado.mensagem = MENSAGENS.sorvete.erro.imagem_não_encontrada
+                break
+                
+            default:
+                console.error( "--- Erro apagar_imagem_sorvete --- \n", erro )
+                resultado.mensagem = MENSAGENS.global.erro.interno( erro )
+                break
+        }
+    }
+    
+    return resultado
+}
