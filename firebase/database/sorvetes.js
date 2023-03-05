@@ -5,7 +5,6 @@ import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteD
 import { corrigir_nome } from "../../schemas/sorvete.js"
 import { Resultado } from "../../schemas/resultado.js"
 import { MENSAGENS } from "../../schemas/mensagens.js"
-import * as Helper from "../../helper/funções.js"
 import { firebase } from "../firebase.js"
 
 const DB = getFirestore( firebase ),
@@ -30,7 +29,12 @@ export async function obter_sorvetes(){
             })
         })
         
-        resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_obtido( resultado.resultados.length ) 
+        if( resultado.resultados.length >= 1 )
+            resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_obtido( resultado.resultados.length ) 
+        else {
+            resultado.mensagem = MENSAGENS.sorvete.erro.não_encontrado
+            resultado.sucesso = false
+        }
 
 	} catch( erro ){
 		console.error( "--- Erro obter_sorvetes --- \n", erro )
@@ -43,14 +47,14 @@ export async function obter_sorvetes(){
 
 /**
  * Obter documento da Collection pelo id
- * @param   { string } id Id do documento
+ * @param   { string } _id Id do documento
  * @returns { Promisse< Resultado > }
  */
-export async function obter_sorvete_id( id ){
+export async function obter_sorvete_id( _id ){
     let resultado = new Resultado()
     
     try {
-        let documento = doc( DB, DB_NOME, id ),
+        let documento = doc( DB, DB_NOME, _id ),
             sorvete = await getDoc( documento )
 
         // Encontrado na Collection
@@ -121,18 +125,18 @@ export async function adicionar_sorvete( sorvete ){
 
 /**
  * Apagar um sorvete na Collection
- * @param   { string } id Id do documento
+ * @param   { string } _id Id do documento
  * @returns { Promisse< Resultado > }
  */
-export async function apagar_sorvete( id ){
-    let resultado = await obter_sorvete_id( id )
+export async function apagar_sorvete( _id ){
+    let resultado = await obter_sorvete_id( _id )
     
     // Validação se o id existe
     if( !resultado.sucesso ) 
         return resultado
     
     try {
-		let documento = doc( DB, DB_NOME, id )
+		let documento = doc( DB, DB_NOME, _id )
         await deleteDoc( documento )
         
         resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_apagado
@@ -149,12 +153,12 @@ export async function apagar_sorvete( id ){
 
 /**
  * Atualizar sorvete na Collection. Não suporta atualização do _id
- * @param   { String } id ID do Sorvete
+ * @param   { String } _id ID do Sorvete
  * @param   { Sorvete } sorvete Classe/Objeto Sorvete
  * @returns { Promisse< Resultado > }
  */
-export async function atualizar_sorvete( id, sorvete ){
-    let resultado = await obter_sorvete_id( id )
+export async function atualizar_sorvete( _id, sorvete ){
+    let resultado = await obter_sorvete_id( _id )
     
     // Validação se o id foi encontrado
     if( !resultado.sucesso ) 
@@ -165,12 +169,12 @@ export async function atualizar_sorvete( id, sorvete ){
         // Padronização dos nomes
         sorvete.nome = await corrigir_nome( sorvete.nome )
 
-		let documento = doc( DB, DB_NOME, id )
+		let documento = doc( DB, DB_NOME, _id )
         await setDoc( documento, sorvete )
         
         resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_atualizado
         resultado.resultados = [{
-            _id: id,
+            _id: _id,
             ...sorvete
         }]
 

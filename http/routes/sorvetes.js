@@ -1,6 +1,7 @@
 "use strict"
 
 // Dependencias
+import { isNullEmptyUndefined } from "../../helper/funções.js"
 import * as strg from "../../firebase/storage/sorvetes.js"
 import * as db from "../../firebase/database/sorvetes.js"
 import { status_mensagem } from "../../helper/status.js"
@@ -13,13 +14,16 @@ import { Request } from "../classes/request.js"
 export default {
 	"/sorvetes": {
 		/**
-		 * Obter todos os sorvetes
+		 * Query na Collecion dos Sorvetes
 		 * @param   { Request } request 
 		 * @param   { Response } response
 		 * @returns { Promisse< void > }
 		 */
 		"get": async( request, response ) => {
-			let resultado = await db.obter_sorvetes(),
+			let { _id } = request.parâmetros.querys,
+				resultado = ( await isNullEmptyUndefined(_id) )
+					? await db.obter_sorvetes()
+					: await db.obter_sorvete_id( _id ),
 				codigo = ( resultado.sucesso ) 
 					? 200 
 					: await status_mensagem( resultado.mensagem )
@@ -42,24 +46,6 @@ export default {
 
 			response.statusCode = codigo
 			response.body = resultado
-		}
-	},
-	"/sorvetes/{id}": {
-		/**
-		 * Obter sorvete pelo id
-		 * @param   { Request } request 
-		 * @param   { Response } response 
-		 * @returns { Promisse< void > }
-		 */
-		"get": async( request, response ) => {
-			let { id } = request.parâmetros.variáveis,
-				resultado = await db.obter_sorvete_id( id ),
-				codigo = ( resultado.sucesso ) 
-					? 200 
-					: await status_mensagem( resultado.mensagem )
-
-			response.statusCode = codigo
-			response.body = resultado
 		},
 
 		/**
@@ -69,8 +55,8 @@ export default {
 		 * @returns { Promisse< void > }
 		 */
 		"put": async( request, response ) => {
-			let { id } = request.parâmetros.variáveis,
-				resultado = await db.atualizar_sorvete( id, request.body ),
+			let { _id } = request.parâmetros.querys,
+				resultado = await db.atualizar_sorvete( _id, request.body ),
 				codigo = ( resultado.sucesso ) 
 					? 200 
 					: await status_mensagem( resultado.mensagem )
@@ -86,8 +72,8 @@ export default {
 		 * @returns { Promisse< void > }
 		 */
 		"delete": async( request, response ) => {
-			let { id } = request.parâmetros.variáveis,
-				resultado = await db.apagar_sorvete( id ),
+			let { _id } = request.parâmetros.querys,
+				resultado = await db.apagar_sorvete( _id ),
 				codigo = ( resultado.sucesso ) 
 					? 200 
 					: await status_mensagem( resultado.mensagem )

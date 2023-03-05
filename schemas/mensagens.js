@@ -39,8 +39,8 @@
             /** "Sorvete já existente na base de dados" */
             sorvete_duplicado : "Sorvete já existente na base de dados",
             
-            /** "Sorvete não encontrado" */
-            não_encontrado: "Sorvete não encontrado",
+            /** "Sorvete(s) não encontrado(s)" */
+            não_encontrado: "Sorvete(s) não encontrado(s)",
             
             /** "Imagem não encontrada" */
             imagem_não_encontrada: "Imagem não encontrada"

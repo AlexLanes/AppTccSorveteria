@@ -38,6 +38,7 @@ const PADRÕES = {
                 }
             }
         },
+        
         Accept: {
             "name": "Accept",
             "description": "Formatos possíveis de resposta",
@@ -47,16 +48,6 @@ const PADRÕES = {
                 "type": "string",
                 "enum": HEADERS.accept,
                 "default": HEADERS.accept[ 1 ]
-            }
-        },
-        id: {
-            "name": "id",
-            "description": "identificador item",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string",
-                "pattern": "^\\w+$"
             }
         },
 
@@ -103,7 +94,7 @@ const PADRÕES = {
     /**
      * @param   { String } description Descrição do Response 
      * @param   { Resultado.Resultado } example Exemplo do response
-     * @returns { Object } Objeto no formato response
+     * @returns Objeto no formato response
      */
     response: ( description, example ) => {
         return {
@@ -194,18 +185,29 @@ export const ESPECIFICAÇÃO = {
             "get": {
                 "tags": [ PADRÕES.tags[1] ],
                 "operationId": "obter-sorvetes",
-                "summary": "Obter todos os sorvetes",
+                "summary": "Obter sorvetes",
                 "parameters": [
-                    PADRÕES.parameters.Accept
+                    PADRÕES.parameters.Accept,
+                    await PADRÕES.parameters.query( "_id", "ID do sorvete para obter apenas o desejado", false, {
+                        type: "string"
+                    })
                 ],
                 "responses": {
-                    "200": PADRÕES.response(
-                        "Sucesso", 
-                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_obtido(1), [PADRÕES.exemplos.sorvete_id] )
+                    "200": PADRÕES.response( 
+                        "Sucesso, dado(s) retornado(s)", 
+                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_obtido( 1 ), [ PADRÕES.exemplos.sorvete_id ] )
+                    ),
+                    "400": PADRÕES.response(
+                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
                         new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "404": PADRÕES.response(
+                        MENSAGENS.sorvete.erro.não_encontrado, 
+                        new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
                     ),
                     "500": PADRÕES.response(
                         "Erro interno",
@@ -254,42 +256,6 @@ export const ESPECIFICAÇÃO = {
                 "security": [{
                   "apikey": []
                 }]
-            }
-        },
-        "/sorvetes/{id}": {
-            "get": {
-                "tags": [ PADRÕES.tags[1] ],
-                "operationId": "obter-sorvete-id",
-                "summary": "Obter sorvete pelo id",
-                "parameters": [
-                    PADRÕES.parameters.id,
-                    PADRÕES.parameters.Accept
-                ],
-                "responses": {
-                    "200": PADRÕES.response( 
-                        MENSAGENS.sorvete.sucesso.sorvete_obtido( 1 ), 
-                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_obtido( 1 ), [ PADRÕES.exemplos.sorvete_id ] )
-                    ),
-                    "400": PADRÕES.response(
-                        MENSAGENS.global.erro.schema_inválido( "{Item que falhou validação}" ), 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
-                    ),
-                    "401": PADRÕES.response(
-                        MENSAGENS.global.erro.não_autorizado, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
-                    ),
-                    "404": PADRÕES.response(
-                        MENSAGENS.sorvete.erro.não_encontrado, 
-                        new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
-                    ),
-                    "500": PADRÕES.response(
-                        "Erro interno",
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
-                    )
-                },
-                "security": [{
-                  "apikey": []
-                }]
             },
             "put": {
                 "tags": [ PADRÕES.tags[1] ],
@@ -297,7 +263,10 @@ export const ESPECIFICAÇÃO = {
                 "summary": "Atualizar sorvete",
                 "parameters": [
                     PADRÕES.parameters.Accept, 
-                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) )
+                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) ),
+                    await PADRÕES.parameters.query( "_id", "ID do sorvete que será atualizado", true, {
+                        type: "string"
+                    })
                 ],
                 "requestBody": PADRÕES.request( 
                     "Novo documento que substituirá o original", 
@@ -317,6 +286,10 @@ export const ESPECIFICAÇÃO = {
                         MENSAGENS.global.erro.não_autorizado, 
                         new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
                     ),
+                    "404": PADRÕES.response(
+                        MENSAGENS.sorvete.erro.não_encontrado, 
+                        new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
+                    ),
                     "500": PADRÕES.response(
                         "Erro interno",
                         new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
@@ -331,8 +304,10 @@ export const ESPECIFICAÇÃO = {
                 "operationId": "apagar-sorvete",
                 "summary": "Apagar sorvete pelo id",
                 "parameters": [
-                    PADRÕES.parameters.id,
-                    PADRÕES.parameters.Accept
+                    PADRÕES.parameters.Accept,
+                    await PADRÕES.parameters.query( "_id", "ID do sorvete que será apagado", true, {
+                        type: "string"
+                    })
                 ],
                 "responses": {
                     "200": PADRÕES.response( 
