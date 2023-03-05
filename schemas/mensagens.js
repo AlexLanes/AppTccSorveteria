@@ -12,9 +12,6 @@
 				return `${quantidade} sorvete(s) obtido(s)` 
 			},
 		
-			/** "Campo do sorvete obtido com sucesso" */
-			campo_obtido: "Campo do sorvete obtido com sucesso",
-		
 			/** "Sorvete adicionado com sucesso" */
 			sorvete_adicionado: "Sorvete adicionado com sucesso",
 		
@@ -83,9 +80,6 @@
             
             /** "id inválido" */
             id_invalido: "id inválido",
-        
-            /** "Obrigatório informar o _id presente no schema" */
-            id_obrigatório: "Obrigatório informar o _id presente no schema",
 
             /** "Campo não presente no schema" */
             campo_inválido: "Campo não presente no schema",

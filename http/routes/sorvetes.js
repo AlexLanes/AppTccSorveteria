@@ -42,22 +42,6 @@ export default {
 
 			response.statusCode = codigo
 			response.body = resultado
-		},
-
-		/**
-		 * Atualizar Sorvete
-		 * @param   { Request } request 
-		 * @param   { Response } response
-		 * @returns { Promisse< void > }
-		 */
-		"put": async( request, response ) => {
-			let resultado = await db.atualizar_sorvete( request.body ),
-				codigo = ( resultado.sucesso ) 
-					? 200 
-					: await status_mensagem( resultado.mensagem )
-	
-			response.statusCode = codigo
-			response.body = resultado
 		}
 	},
 	"/sorvetes/{id}": {
@@ -79,6 +63,23 @@ export default {
 		},
 
 		/**
+		 * Atualizar Sorvete
+		 * @param   { Request } request 
+		 * @param   { Response } response
+		 * @returns { Promisse< void > }
+		 */
+		"put": async( request, response ) => {
+			let { id } = request.parâmetros.variáveis,
+				resultado = await db.atualizar_sorvete( id, request.body ),
+				codigo = ( resultado.sucesso ) 
+					? 200 
+					: await status_mensagem( resultado.mensagem )
+	
+			response.statusCode = codigo
+			response.body = resultado
+		},
+
+		/**
 		 * Apagar sorvete pelo id
 		 * @param   { Request } request 
 		 * @param   { Response } response 
@@ -87,24 +88,6 @@ export default {
 		"delete": async( request, response ) => {
 			let { id } = request.parâmetros.variáveis,
 				resultado = await db.apagar_sorvete( id ),
-				codigo = ( resultado.sucesso ) 
-					? 200 
-					: await status_mensagem( resultado.mensagem )
-
-			response.statusCode = codigo
-			response.body = resultado
-		}
-	},
-	"/sorvetes/{id}/{campo}": {
-		/**
-		 * Obter campo de sorvete pelo id
-		 * @param   { Request } request 
-		 * @param   { Response } response 
-		 * @returns { Promisse< void > }
-		 */
-		"get": async( request, response ) => {
-			let { id, campo } = request.parâmetros.variáveis,
-				resultado = await db.obter_campo_sorvete( id, campo ),
 				codigo = ( resultado.sucesso ) 
 					? 200 
 					: await status_mensagem( resultado.mensagem )

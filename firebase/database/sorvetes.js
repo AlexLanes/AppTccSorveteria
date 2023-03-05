@@ -83,40 +83,6 @@ export async function obter_sorvete_id( id ){
 }
 
 /**
- * Obter campo específico de determinado documento pelo id
- * @param   { string } id Id do documento
- * @param   { string } campo Nome do campo
- * @returns { Promisse< Resultado > }
- */
-export async function obter_campo_sorvete( id, campo ){
-    // Validação campo
-    if( typeof campo === "string" && campo != ""  ) 
-        campo = campo.toLowerCase().trim()
-
-    let resultado = await obter_sorvete_id( id )
-    
-    // Documento não encontrado
-    if( !resultado.sucesso )
-        return resultado
-
-    // Campo encontrado
-    if( campo in resultado.resultados[0] ){
-        resultado.mensagem = MENSAGENS.sorvete.sucesso.campo_obtido
-        resultado.resultados = [ 
-            resultado.resultados[ 0 ][ campo ] 
-        ]
-    
-    // Campo não encontrado
-    } else {
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.campo_inválido
-        resultado.resultados = []
-    }
-
-    return resultado
-}
-
-/**
  * Adicionar um sorvete na Collection
  * @param   { Sorvete } sorvete Classe/Objeto Sorvete
  * @returns { Promisse< Resultado > }
@@ -198,38 +164,30 @@ export async function apagar_sorvete( id ){
 
 /**
  * Atualizar sorvete na Collection. Não suporta atualização do _id
+ * @param   { String } id ID do Sorvete
  * @param   { Sorvete } sorvete Classe/Objeto Sorvete
  * @returns { Promisse< Resultado > }
  */
-export async function atualizar_sorvete( sorvete ){
-    let resultado = new Resultado()
-    
-    // ID não presente
-    if( !("_id" in sorvete) ){
-        resultado.sucesso = false
-        resultado.mensagem = MENSAGENS.global.erro.id_obrigatório
-        return resultado
-    }
-
-    resultado = await obter_sorvete_id( sorvete._id )
+export async function atualizar_sorvete( id, sorvete ){
+    let resultado = await obter_sorvete_id( id )
     
     // Validação se o id foi encontrado
     if( !resultado.sucesso ) 
         return resultado
     
     try {
+        delete sorvete._id
         // Padronização dos nomes
         sorvete.nome = await corrigir_nome( sorvete.nome )
 
-		let documento = doc( DB, DB_NOME, sorvete._id )
-        
-        // id não fica dentro do documento
-        delete sorvete._id
-
+		let documento = doc( DB, DB_NOME, id )
         await setDoc( documento, sorvete )
         
         resultado.mensagem = MENSAGENS.sorvete.sucesso.sorvete_atualizado
-        resultado.resultados = []
+        resultado.resultados = [{
+            _id: id,
+            ...sorvete
+        }]
 
 	} catch( erro ){
 		console.error( "--- Erro atualizar_sorvete --- \n", erro )

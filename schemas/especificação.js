@@ -245,41 +245,6 @@ export const ESPECIFICAÇÃO = {
                 "security": [{
                   "apikey": []
                 }]
-            },
-            "put": {
-                "tags": [ PADRÕES.tags[1] ],
-                "operationId": "atualizar-sorvete",
-                "summary": "Atualizar sorvete",
-                "parameters": [
-                    PADRÕES.parameters.Accept, 
-                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) )
-                ],
-                "requestBody": PADRÕES.request( 
-                    "Sorvete que será atualizado. O _id é necessário para a atualização", 
-                    "sorvete",
-                    PADRÕES.exemplos.sorvete_id
-                ),
-                "responses": {
-                    "200": PADRÕES.response( 
-                        MENSAGENS.sorvete.sucesso.sorvete_atualizado, 
-                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_atualizado, [ PADRÕES.exemplos.sorvete_id ] )
-                    ),
-                    "400": PADRÕES.response(
-                        "Schema incorreto ou _id não informado", 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
-                    ),
-                    "401": PADRÕES.response(
-                        MENSAGENS.global.erro.não_autorizado, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
-                    ),
-                    "500": PADRÕES.response(
-                        "Erro interno",
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
-                    )
-                },
-                "security": [{
-                  "apikey": []
-                }]
             }
         },
         "/sorvetes/{id}": {
@@ -317,6 +282,41 @@ export const ESPECIFICAÇÃO = {
                   "apikey": []
                 }]
             },
+            "put": {
+                "tags": [ PADRÕES.tags[1] ],
+                "operationId": "atualizar-sorvete",
+                "summary": "Atualizar sorvete",
+                "parameters": [
+                    PADRÕES.parameters.Accept, 
+                    await PADRÕES.parameters["Content-Type"]( HEADERS["content-type"].slice(0, 2) )
+                ],
+                "requestBody": PADRÕES.request( 
+                    "Novo documento que substituirá o original", 
+                    "sorvete",
+                    PADRÕES.exemplos.sorvete
+                ),
+                "responses": {
+                    "200": PADRÕES.response( 
+                        MENSAGENS.sorvete.sucesso.sorvete_atualizado, 
+                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.sorvete_atualizado, [ PADRÕES.exemplos.sorvete_id ] )
+                    ),
+                    "400": PADRÕES.response(
+                        "Schema incorreto ou _id não informado", 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.schema_inválido("{Item que falhou validação}") )
+                    ),
+                    "401": PADRÕES.response(
+                        MENSAGENS.global.erro.não_autorizado, 
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
+                    ),
+                    "500": PADRÕES.response(
+                        "Erro interno",
+                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
+                    )
+                },
+                "security": [{
+                  "apikey": []
+                }]
+            },
             "delete": {
                 "tags": [ PADRÕES.tags[1] ],
                 "operationId": "apagar-sorvete",
@@ -333,43 +333,6 @@ export const ESPECIFICAÇÃO = {
                     "400": PADRÕES.response(
                         MENSAGENS.global.erro.id_invalido, 
                         new Resultado.Resultado( false, MENSAGENS.global.erro.id_invalido )
-                    ),
-                    "401": PADRÕES.response(
-                        MENSAGENS.global.erro.não_autorizado, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.não_autorizado )
-                    ),
-                    "404": PADRÕES.response(
-                        MENSAGENS.sorvete.erro.não_encontrado, 
-                        new Resultado.Resultado( false, MENSAGENS.sorvete.erro.não_encontrado )
-                    ),
-                    "500": PADRÕES.response(
-                        "Erro interno",
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.interno("{Detalhe erro}") )
-                    )
-                },
-                "security": [{
-                  "apikey": []
-                }]
-            }
-        },
-        "/sorvetes/{id}/{campo}": {
-            "get": {
-                "tags": [ PADRÕES.tags[1] ],
-                "operationId": "obter-campo-sorvete-id",
-                "summary": "Obter campo de sorvete pelo id",
-                "parameters": [
-                    PADRÕES.parameters.id,
-                    PADRÕES.parameters.campo,
-                    PADRÕES.parameters.Accept, 
-                ],
-                "responses": {
-                    "200": PADRÕES.response( 
-                        MENSAGENS.sorvete.sucesso.campo_obtido, 
-                        new Resultado.Resultado( true, MENSAGENS.sorvete.sucesso.campo_obtido, [ "Valor do campo" ] )
-                    ),
-                    "400": PADRÕES.response(
-                        MENSAGENS.global.erro.campo_inválido, 
-                        new Resultado.Resultado( false, MENSAGENS.global.erro.campo_inválido )
                     ),
                     "401": PADRÕES.response(
                         MENSAGENS.global.erro.não_autorizado, 
